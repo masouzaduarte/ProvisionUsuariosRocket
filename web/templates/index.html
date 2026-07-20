@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provision Rocket — Painel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='painel.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <nav class="navbar navbar-dark border-bottom border-secondary-subtle px-3 py-3">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1 fw-semibold">
+        Provision <span class="text-accent">Rocket</span>
+      </span>
+      <div class="d-flex align-items-center gap-3 small text-secondary">
+        <span title="Rocket.Chat">{{ rc_url }}</span>
+        <span class="badge text-bg-dark border">admin: {{ admin_user }}</span>
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-light">Atualizar</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid px-4 py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-3">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label">Provisionados</div>
+          <div class="stat-value">{{ total_criados }}</div>
+          <div class="stat-hint">prontos para fase 2: {{ elegiveis_fase2 }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card accent">
+          <div class="stat-label">E-mails de reset</div>
+          <div class="stat-value">{{ total_emailed }}</div>
+          <div class="stat-hint">status emailed</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card warn">
+          <div class="stat-label">Erros</div>
+          <div class="stat-value">{{ total_erros }}</div>
+          <div class="stat-hint">checkpoint</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label">Job</div>
+          <div class="stat-value job-status" id="job-status">
+            {% if job.running %}
+              <span class="text-warning">● {{ job.fase }}</span>
+            {% else %}
+              <span class="text-success">○ idle</span>
+            {% endif %}
+          </div>
+          <div class="stat-hint">CSV: {{ csv_path }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Controles -->
+      <div class="col-lg-4">
+        <section class="panel mb-4">
+          <h2 class="panel-title">Fase 1 — Criar usuários</h2>
+          <p class="panel-desc">
+            Cria contas no Rocket com <code>sendWelcomeEmail: false</code>.
+            Username = <strong>CPF</strong> (só dígitos). <strong>Nenhum e-mail</strong> nesta etapa.
+          </p>          <form method="post" action="{{ url_for('api_fase1') }}" class="vstack gap-2">
+            <input type="hidden" name="csv_path" value="{{ csv_path }}">
+            <div>
+              <label class="form-label small">Limite (opcional)</label>
+              <input type="number" name="limit" class="form-control form-control-sm" min="1" placeholder="vazio = todos">
+            </div>
+            <button type="submit" class="btn btn-primary" {% if job.running %}disabled{% endif %}>
+              Disparar Fase 1
+            </button>
+          </form>
+        </section>
+
+        <section class="panel mb-4">
+          <h2 class="panel-title">Fase 2 — E-mail de reset</h2>
+          <p class="panel-desc">
+            Envia apenas o e-mail de <em>Forgot Password</em> via SMTP do Rocket
+            para quem já está em <code>created</code> / <code>exists</code>.
+          </p>
+          <form method="post" action="{{ url_for('api_fase2') }}" class="vstack gap-2">
+            <div>
+              <label class="form-label small">Limite (opcional)</label>
+              <input type="number" name="limit" class="form-control form-control-sm" min="1" placeholder="vazio = todos elegíveis">
+            </div>
+            <button type="submit" class="btn btn-accent" {% if job.running %}disabled{% endif %}>
+              Disparar Fase 2
+            </button>
+          </form>
+          <hr class="border-secondary-subtle my-3">
+          <form method="post" action="{{ url_for('api_fase2_um') }}" class="vstack gap-2">
+            <label class="form-label small">Enviar reset para um e-mail</label>
+            <input type="email" name="email" class="form-control form-control-sm" required placeholder="usuario@org.gov.br">
+            <button type="submit" class="btn btn-outline-light btn-sm">Enviar só este</button>
+          </form>
+        </section>
+
+        <section class="panel mb-4 border-danger-subtle">
+          <h2 class="panel-title text-danger">Excluir usuário (seguro)</h2>
+          <p class="panel-desc">
+            Exclusão <strong>somente por username</strong> (nunca por e-mail).
+            Contas protegidas: {% for p in protegidos %}<code>{{ p }}</code>{% if not loop.last %}, {% endif %}{% endfor %}.
+            Também bloqueia quem tem role <code>admin</code>.
+          </p>
+          <form method="post" action="{{ url_for('api_excluir') }}" class="vstack gap-2" id="form-excluir"
+                onsubmit="return onSideDeleteSubmit(event);">
+            <div>
+              <label class="form-label small">Username / CPF a excluir</label>
+              <input type="text" name="username" id="del-user" class="form-control form-control-sm" required
+                     autocomplete="off" placeholder="ex.: 52998224725">
+            </div>
+            <div>
+              <label class="form-label small">Digite o CPF/username novamente para confirmar</label>              <input type="text" name="confirm_username" id="del-confirm" class="form-control form-control-sm" required
+                     autocomplete="off">
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="recreate" value="1" id="del-recreate">
+              <label class="form-check-label small" for="del-recreate">
+                Após excluir, recriar (Fase 1, sem e-mail) a partir do CSV
+              </label>
+            </div>
+            <input type="hidden" name="csv_path" value="{{ csv_path }}">
+            <button type="submit" class="btn btn-outline-danger">Excluir usuário</button>
+          </form>
+        </section>
+
+        <section class="panel mb-4">
+          <h2 class="panel-title">Arquivos / job</h2>
+          <form method="post" action="{{ url_for('api_export') }}" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-outline-light">Exportar CSVs de estado</button>
+          </form>
+          {% if job.running %}
+          <form method="post" action="{{ url_for('api_cancel') }}" class="d-inline ms-1">
+            <button type="submit" class="btn btn-sm btn-warning">Cancelar job</button>
+          </form>
+          {% endif %}
+          <p class="small text-secondary mt-2 mb-0">
+            Gera <code>data/usuarios_criados.csv</code> e
+            <code>data/usuarios_email_enviado.csv</code>
+          </p>
+        </section>
+      </div>
+
+      <!-- Listas + log -->
+      <div class="col-lg-8">
+        <section class="panel mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="panel-title mb-0">Log do job</h2>
+            <span class="small text-secondary" id="job-counters"></span>
+          </div>
+          <pre class="job-log" id="job-log">{% for line in job.log_lines %}{{ line }}
+{% endfor %}</pre>
+        </section>
+
+        <ul class="nav nav-tabs nav-tabs-dark align-items-end" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-criados" type="button">
+              Usuários ({{ usuarios|length }})
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-emailed" type="button">
+              E-mail enviado ({{ emailed|length }})
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-erros" type="button">
+              Erros ({{ erros|length }})
+            </button>
+          </li>
+          <li class="nav-item ms-auto pb-1">
+            <a href="{{ url_for('index') }}" class="btn btn-xs btn-outline-light">Atualizar listas</a>
+          </li>
+        </ul>
+
+        <div class="tab-content panel panel-tab">
+          <div class="tab-pane fade show active" id="tab-criados">
+            <div class="table-responsive">
+              <table class="table table-sm table-darkish align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Username (CPF)</th>
+                    <th>E-mail</th>
+                    <th>CPF</th>
+                    <th>Status</th>
+                    <th></th>                  </tr>
+                </thead>
+                <tbody>
+                  {% for u in usuarios %}
+                  <tr>
+                    <td>{{ u.nome or '—' }}</td>
+                    <td><code>{{ u.username }}</code></td>
+                    <td class="small">{{ u.email }}</td>
+                    <td class="small">{{ u.cpf or '—' }}</td>
+                    <td>
+                      {% if u.status == 'emailed' %}
+                        <span class="badge text-bg-success">{{ u.status }}</span>
+                      {% elif u.status == 'exists' %}
+                        <span class="badge text-bg-info">{{ u.status }}</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">{{ u.status }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">
+                      <form method="post" action="{{ url_for('api_excluir') }}" class="d-inline"
+                            onsubmit="return false;">
+                        <input type="hidden" name="username" value="{{ u.username }}">
+                        <input type="hidden" name="confirm_username" value="{{ u.username }}">
+                        <input type="hidden" name="csv_path" value="{{ csv_path }}">
+                        <button type="button" class="btn btn-xs btn-outline-danger"
+                                onclick="onDeleteClick(this)">Excluir</button>
+                      </form>
+                      {% if u.status in ['created', 'exists'] %}
+                      <form method="post" action="{{ url_for('api_fase2_um') }}" class="d-inline">
+                        <input type="hidden" name="email" value="{{ u.email }}">
+                        <button type="submit" class="btn btn-xs btn-outline-light">Reset e-mail</button>
+                      </form>
+                      {% elif u.status == 'emailed' %}
+                      <form method="post" action="{{ url_for('api_fase2_um') }}" class="d-inline">
+                        <input type="hidden" name="email" value="{{ u.email }}">
+                        <button type="submit" class="btn btn-xs btn-outline-light"
+                                title="Reenviar e-mail de reset">Reenviar</button>
+                      </form>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr><td colspan="6" class="text-secondary">Nenhum usuário criado ainda.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-emailed">
+            <div class="table-responsive">
+              <table class="table table-sm table-darkish align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Username (CPF)</th>
+                    <th>E-mail</th>
+                    <th>Atualizado</th>                  </tr>
+                </thead>
+                <tbody>
+                  {% for u in emailed %}
+                  <tr>
+                    <td>{{ u.nome or '—' }}</td>
+                    <td><code>{{ u.username }}</code></td>
+                    <td class="small">{{ u.email }}</td>
+                    <td class="small">{{ u.updated_at }}</td>
+                  </tr>
+                  {% else %}
+                  <tr><td colspan="4" class="text-secondary">Nenhum e-mail de reset enviado ainda.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-erros">
+            <div class="table-responsive">
+              <table class="table table-sm table-darkish align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>E-mail</th>
+                    <th>Detalhe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for u in erros %}
+                  <tr>
+                    <td><code>{{ u.username }}</code></td>
+                    <td class="small">{{ u.email }}</td>
+                    <td class="small text-warning">{{ u.detalhe }}</td>
+                  </tr>
+                  {% else %}
+                  <tr><td colspan="3" class="text-secondary">Sem erros registrados.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal alerta -->
+  <div class="modal fade" id="modalAlert" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-dark">
+        <div class="modal-header border-secondary-subtle">
+          <h5 class="modal-title" id="modalAlertTitle">Aviso</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="modalAlertBody"></div>
+        <div class="modal-footer border-secondary-subtle">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal confirmação de exclusão -->
+  <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-dark">
+        <div class="modal-header border-secondary-subtle">
+          <h5 class="modal-title text-danger">Confirmar exclusão</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="modalConfirmBody"></div>
+        <div class="modal-footer border-secondary-subtle">
+          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="modalConfirmOk">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const modalAlertEl = document.getElementById('modalAlert');
+    const modalConfirmEl = document.getElementById('modalConfirm');
+    const modalAlert = new bootstrap.Modal(modalAlertEl);
+    const modalConfirm = new bootstrap.Modal(modalConfirmEl);
+    let pendingDeleteForm = null;
+
+    function showAlert(message, title) {
+      document.getElementById('modalAlertTitle').textContent = title || 'Aviso';
+      document.getElementById('modalAlertBody').textContent = message;
+      modalAlert.show();
+    }
+
+    function askDelete(username, form) {
+      pendingDeleteForm = form;
+      document.getElementById('modalConfirmBody').innerHTML =
+        'Excluir permanentemente o usuário <code>' + username + '</code> no Rocket.Chat?' +
+        '<br><br><span class="text-secondary small">Contas admin/protegidas são bloqueadas. Revise o CPF/username com cuidado.</span>';
+      modalConfirm.show();
+    }
+
+    document.getElementById('modalConfirmOk').addEventListener('click', function () {
+      const form = pendingDeleteForm;
+      pendingDeleteForm = null;
+      modalConfirm.hide();
+      if (form) form.submit();
+    });
+
+    function onDeleteClick(btn) {
+      const form = btn.closest('form');
+      const username = (form.querySelector('[name="username"]') || {}).value || '';
+      askDelete(username, form);
+      return false;
+    }
+
+    function onSideDeleteSubmit(ev) {
+      ev.preventDefault();
+      const form = ev.target;
+      const u = form.querySelector('#del-user').value.trim();
+      const c = form.querySelector('#del-confirm').value.trim();
+      if (!u || u !== c) {
+        showAlert('Username e confirmação devem ser idênticos.', 'Confirmação inválida');
+        return false;
+      }
+      askDelete(u, form);
+      return false;
+    }
+
+    async function pollJob() {
+      try {
+        const r = await fetch('{{ url_for("api_job") }}');
+        const j = await r.json();
+        const statusEl = document.getElementById('job-status');
+        const logEl = document.getElementById('job-log');
+        const cntEl = document.getElementById('job-counters');
+        if (j.running) {
+          statusEl.innerHTML = '<span class="text-warning">● ' + (j.fase || 'job') + '</span>';
+        } else {
+          statusEl.innerHTML = '<span class="text-success">○ idle</span>';
+        }
+        if (j.log_lines && j.log_lines.length) {
+          logEl.textContent = j.log_lines.join('\n');
+          logEl.scrollTop = logEl.scrollHeight;
+        }
+        if (j.contadores) {
+          const c = j.contadores;
+          cntEl.textContent =
+            'lidos=' + c.lidos + ' criados=' + c.criados +
+            ' emails=' + c.emails + ' falhas=' + c.falhas;
+        }
+      } catch (e) { /* ignore */ }
+    }
+    setInterval(pollJob, 2000);
+  </script>
+</body>
+</html>

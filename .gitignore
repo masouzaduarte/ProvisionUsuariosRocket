@@ -1,0 +1,15 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/*.log
+data/checkpoint.db
+data/checkpoint.db-*
+data/erros.csv
+data/sucesso.csv
+data/entrada.csv
+data/usuarios_criados.csv
+data/usuarios_email_enviado.csv
+*.bak
