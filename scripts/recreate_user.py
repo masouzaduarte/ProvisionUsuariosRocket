@@ -61,12 +61,12 @@ created = rc.create_user(
 print("CRIADO id=", created.get("_id"), "username=", created.get("username"))
 print("SENHA_TEMPORARIA=", senha)
 
-if settings.rc_room_id:
-    try:
-        rc.invite_to_channel(settings.rc_room_id, created["_id"])
-        print("Convidado ao canal", settings.rc_room_id)
-    except Exception as exc:
-        print("Convite canal falhou:", exc)
+try:
+    room = rc.resolve_default_room(settings.rc_room_id, settings.rc_room_name or "SNAS")
+    rc.invite_to_channel(room["_id"], created["_id"], room_type=room.get("t"))
+    print("Convidado ao canal", room.get("name"), room["_id"])
+except Exception as exc:
+    print("Convite canal falhou:", exc)
 
 cp = Checkpoint(settings.checkpoint_path)
 cp.registrar(email, username, "created", user_id=created.get("_id"), detalhe="recreate-manual")

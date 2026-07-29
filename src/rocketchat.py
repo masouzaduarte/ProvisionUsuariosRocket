@@ -149,6 +149,8 @@ class RocketChatClient:
             "verified": verified,
             "requirePasswordChange": require_password_change,
             "sendWelcomeEmail": False,
+            # Evita entrar automaticamente em canais default (#general etc.)
+            "joinDefaultChannels": False,
         }
         if cpf:
             body["customFields"] = {"cpf": cpf}
@@ -179,20 +181,98 @@ class RocketChatClient:
     def update_setting(self, setting_id: str, value: Any) -> dict[str, Any]:
         return self._request("POST", f"settings/{setting_id}", json={"value": value})
 
-    def invite_to_channel(self, room_id: str, user_id: str) -> None:
-        if not room_id:
-            return
+    def find_room_by_name(self, room_name: str) -> dict[str, Any] | None:
+        """Localiza canal público ou grupo privado pelo nome."""
+        name = (room_name or "").strip()
+        if not name:
+            return None
+        # Preferência: rooms.adminRooms (encontra públicos e privados)
         try:
-            self._request("POST", "channels.invite", json={"roomId": room_id, "userId": user_id})
-        except RocketChatError as exc:
-            body = (exc.body or "").lower()
-            if any(x in body for x in ("already", "exist", "já", "ja ")):
-                return
-            # tenta groups.invite se for grupo privado
+            data = self._request("GET", f"rooms.adminRooms?filter={quote(name)}&count=50")
+            for room in data.get("rooms") or []:
+                if (room.get("name") or "").strip().lower() == name.lower():
+                    return room
+        except RocketChatError:
+            pass
+        for path, key in (
+            (f"channels.info?roomName={quote(name)}", "channel"),
+            (f"groups.info?roomName={quote(name)}", "group"),
+        ):
             try:
-                self._request("POST", "groups.invite", json={"roomId": room_id, "userId": user_id})
+                data = self._request("GET", path)
+                room = data.get(key)
+                if room:
+                    return room
             except RocketChatError:
-                logger.warning("Falha ao convidar user_id=%s room=%s: %s", user_id, room_id, exc)
+                continue
+        return None
+
+    def find_room_by_id(self, room_id: str) -> dict[str, Any] | None:
+        rid = (room_id or "").strip()
+        if not rid:
+            return None
+        for path, key in (
+            (f"channels.info?roomId={rid}", "channel"),
+            (f"groups.info?roomId={rid}", "group"),
+            (f"rooms.info?roomId={rid}", "room"),
+        ):
+            try:
+                data = self._request("GET", path)
+                room = data.get(key)
+                if room:
+                    return room
+            except RocketChatError:
+                continue
+        return None
+
+    def resolve_default_room(self, room_id: str = "", room_name: str = "SNAS") -> dict[str, Any]:
+        """
+        Resolve o canal padrão de entrada dos usuários provisionados.
+        Prioridade: room_name (padrão SNAS). Se room_id for informado, valida consistência.
+        """
+        name_esperado = (room_name or "SNAS").strip() or "SNAS"
+        room = self.find_room_by_name(name_esperado)
+        if not room and room_id:
+            room = self.find_room_by_id(room_id)
+        if not room:
+            raise RocketChatError(f"Canal/grupo '{name_esperado}' não encontrado no Rocket.Chat")
+
+        nome = (room.get("name") or "").strip()
+        if nome.lower() != name_esperado.lower():
+            raise RocketChatError(
+                f"Sala resolvida é '{nome}', mas o canal esperado é '{name_esperado}'. "
+                f"Atualize RC_ROOM_ID ou RC_ROOM_NAME no .env."
+            )
+
+        rid = room.get("_id")
+        if not rid:
+            raise RocketChatError(f"Sala '{name_esperado}' sem _id")
+
+        if room_id and room_id != rid:
+            raise RocketChatError(
+                f"RC_ROOM_ID '{room_id}' não corresponde a '{name_esperado}' "
+                f"(id real={rid}). Atualize o .env."
+            )
+        return room
+
+    def invite_to_channel(self, room_id: str, user_id: str, room_type: str | None = None) -> None:
+        if not room_id or not user_id:
+            return
+
+        # t = c público, p privado
+        order = ("groups", "channels") if room_type == "p" else ("channels", "groups")
+        last_exc: RocketChatError | None = None
+        for kind in order:
+            try:
+                self._request("POST", f"{kind}.invite", json={"roomId": room_id, "userId": user_id})
+                return
+            except RocketChatError as exc:
+                body = (exc.body or "").lower()
+                if any(x in body for x in ("already", "exist", "já", "ja ")):
+                    return
+                last_exc = exc
+        if last_exc:
+            logger.warning("Falha ao convidar user_id=%s room=%s: %s", user_id, room_id, last_exc)
 
 
 def sleep_ms(ms: int) -> None:

@@ -79,18 +79,76 @@
       <!-- Controles -->
       <div class="col-lg-4">
         <section class="panel mb-4">
-          <h2 class="panel-title">Fase 1 — Criar usuários</h2>
+          <h2 class="panel-title">Lotes (MARCO / EVALDO / DIEGO)</h2>
           <p class="panel-desc">
-            Cria contas no Rocket com <code>sendWelcomeEmail: false</code>.
-            Username = <strong>CPF</strong> (só dígitos). <strong>Nenhum e-mail</strong> nesta etapa.
-          </p>          <form method="post" action="{{ url_for('api_fase1') }}" class="vstack gap-2">
+            EXPORT dividido em lotes de <strong>10 mil</strong> usuários válidos.
+            Cada lote é atribuído em rodízio. O arquivo
+            <code>data/lotes/status.json</code> sincroniza o progresso entre os 3 devs (commit/push).
+          </p>
+          <form method="get" action="{{ url_for('index') }}" class="mb-2">
+            <label class="form-label small">Filtrar por desenvolvedor</label>
+            <div class="input-group input-group-sm">
+              <select name="dev" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Todos</option>
+                {% for d in devs %}
+                <option value="{{ d }}" {% if filtro_dev == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </form>
+          <div class="small text-secondary mb-2">
+            {% for d in devs %}
+              {% set r = resumo_devs.get(d, {}) %}
+              <div>
+                <strong>{{ d }}</strong>:
+                {{ r.get('concluido', 0) }}/{{ r.get('total', 0) }} concluídos
+                ({{ r.get('linhas', 0) }} linhas)
+              </div>
+            {% endfor %}
+          </div>
+          <form method="post" action="{{ url_for('api_fase1') }}" class="vstack gap-2 mb-3">
+            <label class="form-label small">Escolher lote para Fase 1</label>
+            <select name="lote_id" class="form-select form-select-sm" required>
+              <option value="" disabled selected>— selecione —</option>
+              {% for l in lotes %}
+              <option value="{{ l.id }}" {% if l.status == 'concluido' %}disabled{% endif %}>
+                {{ l.id }} · {{ l.desenvolvedor }} · {{ l.total_linhas }} · {{ l.status }}
+              </option>
+              {% else %}
+              <option value="" disabled>Nenhum lote — gere os lotes abaixo</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="dev" value="{{ filtro_dev }}">
+            <div>
+              <label class="form-label small">Limite (opcional, dentro do lote)</label>
+              <input type="number" name="limit" class="form-control form-control-sm" min="1" placeholder="vazio = lote inteiro">
+            </div>
+            <button type="submit" class="btn btn-primary" {% if job.running or not lotes %}disabled{% endif %}>
+              Processar lote (Fase 1)
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('api_lotes_gerar') }}"
+                onsubmit="return confirm('Regenerar lotes a partir do EXPORT? Lotes concluídos são preservados no status.');">
+            <button type="submit" class="btn btn-sm btn-outline-light" {% if job.running %}disabled{% endif %}>
+              Gerar / regenerar lotes do EXPORT
+            </button>
+          </form>
+        </section>
+
+        <section class="panel mb-4">
+          <h2 class="panel-title">Fase 1 — CSV livre</h2>
+          <p class="panel-desc">
+            Alternativa sem lote: usa o CSV informado.
+            Regras: nome e e-mail obrigatórios; CPF ≠ 00000000000; CPF já usado como username é pulado.
+          </p>
+          <form method="post" action="{{ url_for('api_fase1') }}" class="vstack gap-2">
             <input type="hidden" name="csv_path" value="{{ csv_path }}">
             <div>
               <label class="form-label small">Limite (opcional)</label>
               <input type="number" name="limit" class="form-control form-control-sm" min="1" placeholder="vazio = todos">
             </div>
-            <button type="submit" class="btn btn-primary" {% if job.running %}disabled{% endif %}>
-              Disparar Fase 1
+            <button type="submit" class="btn btn-outline-primary" {% if job.running %}disabled{% endif %}>
+              Disparar Fase 1 (CSV)
             </button>
           </form>
         </section>
@@ -189,6 +247,11 @@
           <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-erros" type="button">
               Erros ({{ erros|length }})
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-lotes" type="button">
+              Lotes ({{ lotes|length }})
             </button>
           </li>
           <li class="nav-item ms-auto pb-1">
@@ -305,6 +368,67 @@
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div class="tab-pane fade" id="tab-lotes">
+            <div class="table-responsive">
+              <table class="table table-sm table-darkish align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Lote</th>
+                    <th>Dev</th>
+                    <th>Linhas</th>
+                    <th>Status</th>
+                    <th>Criados</th>
+                    <th>Falhas</th>
+                    <th>Controle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for l in lotes %}
+                  <tr>
+                    <td><code>{{ l.id }}</code></td>
+                    <td>{{ l.desenvolvedor }}</td>
+                    <td>{{ l.total_linhas }}</td>
+                    <td>
+                      {% if l.status == 'concluido' %}
+                        <span class="badge text-bg-success">{{ l.status }}</span>
+                      {% elif l.status == 'em_andamento' %}
+                        <span class="badge text-bg-warning">{{ l.status }}</span>
+                      {% elif l.status == 'erro' %}
+                        <span class="badge text-bg-danger">{{ l.status }}</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">{{ l.status }}</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ l.criados }}</td>
+                    <td>{{ l.falhas }}</td>
+                    <td class="text-nowrap">
+                      <form method="post" action="{{ url_for('api_lotes_status') }}" class="d-inline">
+                        <input type="hidden" name="lote_id" value="{{ l.id }}">
+                        <input type="hidden" name="dev" value="{{ filtro_dev }}">
+                        <input type="hidden" name="status" value="concluido">
+                        <button type="submit" class="btn btn-xs btn-outline-success"
+                                {% if l.status == 'concluido' %}disabled{% endif %}>Marcar concluído</button>
+                      </form>
+                      <form method="post" action="{{ url_for('api_lotes_status') }}" class="d-inline">
+                        <input type="hidden" name="lote_id" value="{{ l.id }}">
+                        <input type="hidden" name="dev" value="{{ filtro_dev }}">
+                        <input type="hidden" name="status" value="pendente">
+                        <button type="submit" class="btn btn-xs btn-outline-light"
+                                {% if l.status == 'pendente' %}disabled{% endif %}>Reabrir</button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr><td colspan="7" class="text-secondary">Nenhum lote. Clique em “Gerar lotes do EXPORT”.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <p class="small text-secondary mt-2 mb-0 px-2">
+              Após processar, faça commit de <code>data/lotes/status.json</code> para os outros devs verem o progresso.
+            </p>
           </div>
         </div>
       </div>

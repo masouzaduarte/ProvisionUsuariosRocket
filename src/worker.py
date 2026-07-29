@@ -109,8 +109,18 @@ class ProvisionWorker:
             if not self.settings.skip_email and not self.settings.smtp_host:
                 raise ValueError("SMTP_HOST é obrigatório no .env (ou use --dry-run / SKIP_EMAIL=true)")
             self.rc.login()
+            self._default_room = self.rc.resolve_default_room(
+                self.settings.rc_room_id,
+                self.settings.rc_room_name or "SNAS",
+            )
+            logger.info(
+                "Canal padrão: #%s (%s)",
+                self._default_room.get("name"),
+                self._default_room.get("_id"),
+            )
         else:
             logger.info("DRY-RUN ativo: não cria usuários reais nem envia e-mail SMTP")
+            self._default_room = None
 
         for linha, nome, email, cpf_raw in self._iter_csv(csv_path):
             if limit is not None and cont.lidos >= limit:
@@ -185,8 +195,12 @@ class ProvisionWorker:
                     cont.criados += 1
                     logger.info("CRIADO  %s (%s) cpf=%s", username, email, cpf or "-")
 
-                    if self.settings.rc_room_id and user_id:
-                        self.rc.invite_to_channel(self.settings.rc_room_id, user_id)
+                    if user_id and self._default_room:
+                        self.rc.invite_to_channel(
+                            self._default_room["_id"],
+                            user_id,
+                            room_type=self._default_room.get("t"),
+                        )
 
                     if self.settings.skip_email:
                         logger.warning(

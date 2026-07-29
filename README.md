@@ -43,9 +43,33 @@ nome,email,cpf
 Marco Antonio de Souza Duarte,marco.duarte@memora.com.br,52998224725
 ```
 
-- **Username no Rocket = CPF** (somente dígitos; a coluna `username` foi removida)
-- `cpf` é **obrigatório** e validado
-- Nomes das colunas configuráveis no `.env` (`CSV_COL_*`)
+- **Username no Rocket = CPF** (somente dígitos)
+- **Nome e e-mail obrigatórios** — linha sem nome ou sem e-mail é rejeitada
+- **CPF `00000000000`** e CPFs inválidos/duplicados são rejeitados
+- CPF já usado como username (checkpoint) é **pulado** (não recria)
+
+## Lotes (MARCO / EVALDO / DIEGO)
+
+O `EXPORT_TB_DIRIGENTE(in).csv` é dividido em lotes de **10.000** usuários válidos, atribuídos em rodízio:
+
+| Dev | Lotes |
+|-----|--------|
+| MARCO | lote_001, lote_004, lote_007, … |
+| EVALDO | lote_002, lote_005, lote_008, … |
+| DIEGO | lote_003, lote_006, lote_009, … |
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe scripts\gerar_lotes.py
+```
+
+Gera `data/lotes/lote_NNN.csv`, `manifest.json`, `status.json` e `ATRIBUICAO.md`.
+
+No painel (`run_web.py`):
+1. Filtrar por desenvolvedor
+2. Escolher o lote e disparar Fase 1
+3. Acompanhar status na aba **Lotes** (marcar concluído / reabrir)
+
+**Sincronização entre devs:** após processar, faça commit/push de `data/lotes/status.json` (e puxe antes de começar) para os outros verem quais lotes já foram feitos. Os CSV dos lotes são regeneráveis e ficam no `.gitignore`.
 
 ## Setup
 
@@ -101,14 +125,25 @@ python scripts/delete_user.py --username 52998224725 --confirm 52998224725
 python scripts/delete_user.py --username 52998224725 --confirm 52998224725 --recreate
 ```
 
-## Variáveis (`.env`)
+## Canal padrão (SNAS)
+
+Todo usuário criado na Fase 1 entra **apenas** no grupo privado **SNAS**:
+
+- `joinDefaultChannels: false` na API — não entra em `#general`, CGSIS nem outros defaults
+- após criar, o provision convida via `groups.invite` para o SNAS
+- `.env`: `RC_ROOM_NAME=SNAS` e `RC_ROOM_ID` do grupo (validado na abertura da Fase 1)
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe scripts\validate_snas.py
+```
 
 | Variável | Descrição |
 |----------|-----------|
 | `RC_BASE_URL` | URL do Rocket.Chat |
 | `RC_ADMIN_USER` / `RC_ADMIN_PASSWORD` | Conta com permissão de criar/excluir |
-| `RC_ROOM_ID` | Opcional: convida ao canal após criar |
+| `RC_ROOM_ID` / `RC_ROOM_NAME` | Canal único de entrada (padrão **SNAS**). `joinDefaultChannels=false` — não entra em #general etc. |
 | `DELAY_MS` | Pausa entre usuários |
+
 
 SMTP local **não é necessário** no fluxo em duas fases: o e-mail da Fase 2 usa o SMTP configurado no próprio Rocket.Chat.
 

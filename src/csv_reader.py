@@ -43,7 +43,10 @@ def normalizar_username(raw: str | None, email: str) -> str:
 
 
 def validar_email(email: str) -> bool:
-    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email or ""))
+
+
+CPF_ZEROS = "00000000000"
 
 
 def normalizar_cpf(cpf: str | None) -> str:
@@ -52,10 +55,21 @@ def normalizar_cpf(cpf: str | None) -> str:
     return re.sub(r"\D", "", cpf.strip())
 
 
+def nome_valido(nome: str | None) -> bool:
+    """Nome obrigatório: não vazio e não só dígitos/pontuação."""
+    n = (nome or "").strip()
+    if not n:
+        return False
+    letras = re.sub(r"[^A-Za-zÀ-ÿ]", "", n)
+    return len(letras) >= 2
+
+
 def validar_cpf(cpf: str | None) -> bool:
-    """Valida CPF (11 dígitos + dígitos verificadores)."""
+    """Valida CPF (11 dígitos + dígitos verificadores). Rejeita 00000000000 e sequências iguais."""
     digits = normalizar_cpf(cpf)
     if not digits:
+        return False
+    if digits == CPF_ZEROS:
         return False
     if len(digits) != 11 or digits == digits[0] * 11:
         return False

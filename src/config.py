@@ -21,6 +21,7 @@ class Settings:
     rc_admin_user: str
     rc_admin_password: str
     rc_room_id: str
+    rc_room_name: str
 
     smtp_host: str
     smtp_port: int
@@ -78,6 +79,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         rc_admin_user=admin_user,
         rc_admin_password=admin_password,
         rc_room_id=os.getenv("RC_ROOM_ID", "").strip(),
+        rc_room_name=os.getenv("RC_ROOM_NAME", "SNAS").strip() or "SNAS",
         smtp_host=smtp_host,
         smtp_port=int(os.getenv("SMTP_PORT", "587")),
         smtp_user=os.getenv("SMTP_USER", "").strip(),

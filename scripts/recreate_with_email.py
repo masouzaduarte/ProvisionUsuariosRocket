@@ -53,9 +53,9 @@ created = rc.create_user(
 )
 print("CRIADO", created.get("_id"), created.get("username"))
 
-if settings.rc_room_id:
-    rc.invite_to_channel(settings.rc_room_id, created["_id"])
-    print("convidado ao canal")
+room = rc.resolve_default_room(settings.rc_room_id, settings.rc_room_name or "SNAS")
+rc.invite_to_channel(room["_id"], created["_id"], room_type=room.get("t"))
+print("convidado ao canal", room.get("name"), room["_id"])
 
 mailer = Mailer(
     host=settings.smtp_host,

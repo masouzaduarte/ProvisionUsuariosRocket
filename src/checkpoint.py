@@ -74,6 +74,23 @@ class Checkpoint:
             ).fetchone()
             return bool(row and row["status"] in {"created", "exists", "emailed"})
 
+    def ja_cpf_usado(self, cpf: str) -> bool:
+        """True se o CPF já foi usado como username em criação bem-sucedida."""
+        digits = (cpf or "").strip()
+        if not digits:
+            return False
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT status FROM processados
+                WHERE (username = ? OR cpf = ?)
+                  AND status IN ('created', 'exists', 'emailed')
+                LIMIT 1
+                """,
+                (digits, digits),
+            ).fetchone()
+        return bool(row)
+
     def ja_email_enviado(self, email: str) -> bool:
         with self._connect() as conn:
             row = conn.execute(

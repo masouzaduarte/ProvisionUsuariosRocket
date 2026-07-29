@@ -1,0 +1,732 @@
+{
+  "fonte": "EXPORT_TB_DIRIGENTE(in).csv",
+  "gerado_em": "2026-07-29T14:52:21Z",
+  "lote_size": 10000,
+  "devs": [
+    "MARCO",
+    "EVALDO",
+    "DIEGO"
+  ],
+  "stats": {
+    "lidos": 1048574,
+    "validos": 853004,
+    "rejeitados": 194590,
+    "cpf_duplicado": 980,
+    "motivos": {
+      "sem_email": 194385,
+      "cpf_invalido": 20,
+      "email_invalido": 126,
+      "cpf_duplicado": 980,
+      "sem_nome": 24,
+      "cpf_zeros": 35
+    }
+  },
+  "total_lotes": 86,
+  "atribuicao": {
+    "MARCO": {
+      "lotes": [
+        "lote_001",
+        "lote_004",
+        "lote_007",
+        "lote_010",
+        "lote_013",
+        "lote_016",
+        "lote_019",
+        "lote_022",
+        "lote_025",
+        "lote_028",
+        "lote_031",
+        "lote_034",
+        "lote_037",
+        "lote_040",
+        "lote_043",
+        "lote_046",
+        "lote_049",
+        "lote_052",
+        "lote_055",
+        "lote_058",
+        "lote_061",
+        "lote_064",
+        "lote_067",
+        "lote_070",
+        "lote_073",
+        "lote_076",
+        "lote_079",
+        "lote_082",
+        "lote_085"
+      ],
+      "total_lotes": 29
+    },
+    "EVALDO": {
+      "lotes": [
+        "lote_002",
+        "lote_005",
+        "lote_008",
+        "lote_011",
+        "lote_014",
+        "lote_017",
+        "lote_020",
+        "lote_023",
+        "lote_026",
+        "lote_029",
+        "lote_032",
+        "lote_035",
+        "lote_038",
+        "lote_041",
+        "lote_044",
+        "lote_047",
+        "lote_050",
+        "lote_053",
+        "lote_056",
+        "lote_059",
+        "lote_062",
+        "lote_065",
+        "lote_068",
+        "lote_071",
+        "lote_074",
+        "lote_077",
+        "lote_080",
+        "lote_083",
+        "lote_086"
+      ],
+      "total_lotes": 29
+    },
+    "DIEGO": {
+      "lotes": [
+        "lote_003",
+        "lote_006",
+        "lote_009",
+        "lote_012",
+        "lote_015",
+        "lote_018",
+        "lote_021",
+        "lote_024",
+        "lote_027",
+        "lote_030",
+        "lote_033",
+        "lote_036",
+        "lote_039",
+        "lote_042",
+        "lote_045",
+        "lote_048",
+        "lote_051",
+        "lote_054",
+        "lote_057",
+        "lote_060",
+        "lote_063",
+        "lote_066",
+        "lote_069",
+        "lote_072",
+        "lote_075",
+        "lote_078",
+        "lote_081",
+        "lote_084"
+      ],
+      "total_lotes": 28
+    }
+  },
+  "lotes": [
+    {
+      "id": "lote_001",
+      "arquivo": "lote_001.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_002",
+      "arquivo": "lote_002.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_003",
+      "arquivo": "lote_003.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_004",
+      "arquivo": "lote_004.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_005",
+      "arquivo": "lote_005.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_006",
+      "arquivo": "lote_006.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_007",
+      "arquivo": "lote_007.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_008",
+      "arquivo": "lote_008.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_009",
+      "arquivo": "lote_009.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_010",
+      "arquivo": "lote_010.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_011",
+      "arquivo": "lote_011.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_012",
+      "arquivo": "lote_012.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_013",
+      "arquivo": "lote_013.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_014",
+      "arquivo": "lote_014.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_015",
+      "arquivo": "lote_015.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_016",
+      "arquivo": "lote_016.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_017",
+      "arquivo": "lote_017.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_018",
+      "arquivo": "lote_018.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_019",
+      "arquivo": "lote_019.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_020",
+      "arquivo": "lote_020.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_021",
+      "arquivo": "lote_021.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_022",
+      "arquivo": "lote_022.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_023",
+      "arquivo": "lote_023.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_024",
+      "arquivo": "lote_024.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_025",
+      "arquivo": "lote_025.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_026",
+      "arquivo": "lote_026.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_027",
+      "arquivo": "lote_027.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_028",
+      "arquivo": "lote_028.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_029",
+      "arquivo": "lote_029.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_030",
+      "arquivo": "lote_030.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_031",
+      "arquivo": "lote_031.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_032",
+      "arquivo": "lote_032.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_033",
+      "arquivo": "lote_033.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_034",
+      "arquivo": "lote_034.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_035",
+      "arquivo": "lote_035.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_036",
+      "arquivo": "lote_036.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_037",
+      "arquivo": "lote_037.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_038",
+      "arquivo": "lote_038.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_039",
+      "arquivo": "lote_039.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_040",
+      "arquivo": "lote_040.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_041",
+      "arquivo": "lote_041.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_042",
+      "arquivo": "lote_042.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_043",
+      "arquivo": "lote_043.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_044",
+      "arquivo": "lote_044.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_045",
+      "arquivo": "lote_045.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_046",
+      "arquivo": "lote_046.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_047",
+      "arquivo": "lote_047.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_048",
+      "arquivo": "lote_048.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_049",
+      "arquivo": "lote_049.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_050",
+      "arquivo": "lote_050.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_051",
+      "arquivo": "lote_051.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_052",
+      "arquivo": "lote_052.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_053",
+      "arquivo": "lote_053.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_054",
+      "arquivo": "lote_054.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_055",
+      "arquivo": "lote_055.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_056",
+      "arquivo": "lote_056.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_057",
+      "arquivo": "lote_057.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_058",
+      "arquivo": "lote_058.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_059",
+      "arquivo": "lote_059.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_060",
+      "arquivo": "lote_060.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_061",
+      "arquivo": "lote_061.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_062",
+      "arquivo": "lote_062.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_063",
+      "arquivo": "lote_063.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_064",
+      "arquivo": "lote_064.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_065",
+      "arquivo": "lote_065.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_066",
+      "arquivo": "lote_066.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_067",
+      "arquivo": "lote_067.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_068",
+      "arquivo": "lote_068.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_069",
+      "arquivo": "lote_069.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_070",
+      "arquivo": "lote_070.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_071",
+      "arquivo": "lote_071.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_072",
+      "arquivo": "lote_072.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_073",
+      "arquivo": "lote_073.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_074",
+      "arquivo": "lote_074.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_075",
+      "arquivo": "lote_075.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_076",
+      "arquivo": "lote_076.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_077",
+      "arquivo": "lote_077.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_078",
+      "arquivo": "lote_078.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_079",
+      "arquivo": "lote_079.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_080",
+      "arquivo": "lote_080.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_081",
+      "arquivo": "lote_081.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_082",
+      "arquivo": "lote_082.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_083",
+      "arquivo": "lote_083.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_084",
+      "arquivo": "lote_084.csv",
+      "desenvolvedor": "DIEGO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_085",
+      "arquivo": "lote_085.csv",
+      "desenvolvedor": "MARCO",
+      "total_linhas": 10000,
+      "status": "pendente"
+    },
+    {
+      "id": "lote_086",
+      "arquivo": "lote_086.csv",
+      "desenvolvedor": "EVALDO",
+      "total_linhas": 3004,
+      "status": "pendente"
+    }
+  ]
+}

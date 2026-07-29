@@ -12,4 +12,7 @@ data/sucesso.csv
 data/entrada.csv
 data/usuarios_criados.csv
 data/usuarios_email_enviado.csv
+# Lotes CSV regeneráveis (scripts/gerar_lotes.py); manter status.json no git
+data/lotes/lote_*.csv
+data/lotes/rejeitados.csv
 *.bak
