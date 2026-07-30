@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -67,12 +68,14 @@ def index():
         csv_display = str(csv_atual)
     protegidos = sorted(protected_usernames(settings.rc_admin_user))
 
-    filtro_dev = (request.args.get("dev") or "").strip().upper() or None
+    filtro_dev = (request.args.get("dev") or os.getenv("PROVISION_DEV") or "").strip().upper() or None
     if filtro_dev and filtro_dev not in DEVS:
         filtro_dev = None
     lotes = svc.lotes.listar(desenvolvedor=filtro_dev)
     resumo_devs = svc.lotes.resumo_por_dev()
     lotes_pendentes = [l for l in lotes if l.status in {STATUS_PENDENTE, "erro", "em_andamento"}]
+    instancia = (os.getenv("PROVISION_DEV") or "").strip().upper()
+    web_port = int(os.getenv("WEB_PORT", "5055"))
 
     return render_template(
         "index.html",
@@ -94,6 +97,8 @@ def index():
         resumo_devs=resumo_devs,
         filtro_dev=filtro_dev or "",
         devs=DEVS,
+        instancia=instancia,
+        web_port=web_port,
     )
 
 
@@ -235,9 +240,12 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s | %(levelname)s | %(message)s",
     )
-    host = "127.0.0.1"
-    port = 5055
+    host = os.getenv("WEB_HOST", "127.0.0.1").strip() or "127.0.0.1"
+    port = int(os.getenv("WEB_PORT", "5055"))
+    instancia = os.getenv("PROVISION_DEV", "").strip().upper()
     print(f"Painel ProvisionUsuariosRocket -> http://{host}:{port}")
+    if instancia:
+        print(f"Instância: {instancia}")
     print(f"Rocket: {settings.rc_base_url} | Admin: {settings.rc_admin_user}")
     app.run(host=host, port=port, debug=False, threaded=True)
 

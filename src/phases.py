@@ -235,7 +235,15 @@ class PhaseService:
                     f"CSV do lote {lote_id} não encontrado: {csv_path}. "
                     "Execute scripts/gerar_lotes.py"
                 )
-            self.lotes.marcar_inicio(lote_id)
+            prev = lote.status
+            self.lotes.marcar_inicio(lote_id, retomar=True)
+            if prev in {"em_andamento", "erro"}:
+                # log after cont/log exist — set flag
+                _retomada = True
+            else:
+                _retomada = False
+        else:
+            _retomada = False
 
         if not csv_path.exists():
             raise FileNotFoundError(f"CSV não encontrado: {csv_path}")
@@ -243,6 +251,12 @@ class PhaseService:
         cont = FaseContadores()
         log = on_progress or (lambda m: None)
         cpfs_neste_run: set[str] = set()
+
+        if lote_id and _retomada:
+            log(
+                f"Retomando lote {lote_id} (status anterior interrompido) — "
+                "apenas usuários ainda não criados serão provisionados"
+            )
 
         if self.settings.dry_run:
             log("DRY-RUN: simulação da fase 1 (não cria no Rocket)")

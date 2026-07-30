@@ -83,8 +83,10 @@ class LoteManager:
         self.sync_from_status_file()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.checkpoint_path)
+        conn = sqlite3.connect(self.checkpoint_path, timeout=60.0)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=60000")
         return conn
 
     def _init_db(self) -> None:
@@ -198,16 +200,53 @@ class LoteManager:
         if sync_file:
             self.export_status_file()
 
-    def marcar_inicio(self, lote_id: str) -> LoteInfo:
-        lote = self.obter(lote_id)
-        if not lote:
-            raise ValueError(f"Lote não encontrado: {lote_id}")
-        if lote.status == STATUS_CONCLUIDO:
-            raise ValueError(f"Lote {lote_id} já está concluído.")
-        lote.status = STATUS_ANDAMENTO
-        lote.iniciado_em = lote.iniciado_em or _now()
-        lote.detalhe = "fase1 em andamento"
-        self.upsert(lote)
+    def marcar_inicio(self, lote_id: str, *, retomar: bool = True) -> LoteInfo:
+        """
+        Reserva o lote para Fase 1.
+        Por padrão permite retomar lotes em_andamento/erro (interrupção / reprocessamento).
+        Usuários já criados continuam sendo pulados pelo checkpoint na Fase 1.
+        """
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT * FROM lotes WHERE id = ?", (lote_id,)).fetchone()
+            if not row:
+                conn.execute("ROLLBACK")
+                raise ValueError(f"Lote não encontrado: {lote_id}")
+            status = row["status"]
+            if status == STATUS_CONCLUIDO:
+                conn.execute("ROLLBACK")
+                raise ValueError(
+                    f"Lote {lote_id} já está concluído. Use 'Reabrir' na aba Lotes se quiser reprocessar."
+                )
+            # pendente / erro / em_andamento (retomada) são aceitos
+            if status == STATUS_ANDAMENTO and not retomar:
+                conn.execute("ROLLBACK")
+                raise ValueError(
+                    f"Lote {lote_id} já está em andamento em outra instância."
+                )
+            agora = _now()
+            iniciado = row["iniciado_em"] or agora
+            detalhe = (
+                "fase1 retomada (pula já criados)"
+                if status in {STATUS_ANDAMENTO, STATUS_ERRO}
+                else "fase1 em andamento"
+            )
+            conn.execute(
+                """
+                UPDATE lotes SET
+                    status = ?,
+                    iniciado_em = ?,
+                    concluido_em = NULL,
+                    detalhe = ?,
+                    updated_at = datetime('now')
+                WHERE id = ?
+                """,
+                (STATUS_ANDAMENTO, iniciado, detalhe, lote_id),
+            )
+            conn.commit()
+            row2 = conn.execute("SELECT * FROM lotes WHERE id = ?", (lote_id,)).fetchone()
+        lote = self._row_to_lote(row2)
+        self.export_status_file()
         return lote
 
     def marcar_fim(
@@ -264,9 +303,9 @@ class LoteManager:
             "lote_size": LOTE_SIZE,
             "lotes": lotes,
         }
-        self.status_path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        tmp = self.status_path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(self.status_path)
 
     def sync_from_status_file(self) -> int:
         """Importa status.json (compartilhado via git) para o SQLite local."""
